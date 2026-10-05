@@ -1,0 +1,289 @@
+### app.py
+
+import streamlit as st
+from gemini_service import generate_legal_document
+from document_generator import create_docx
+
+
+# Page configuration
+st.set_page_config(
+    page_title="LegalEase",
+    page_icon="⚖️",
+    layout="centered"
+)
+
+# Title
+st.title("⚖️ LegalEase")
+st.subheader("AI-Powered Legal Document Generator")
+
+st.write(
+    "LegalEase helps users create structured legal document drafts "
+    "using Artificial Intelligence."
+)
+
+st.info(
+    "Disclaimer: LegalEase provides AI-assisted document drafts. "
+    "It is not a substitute for professional legal advice."
+)
+
+# Document type selection
+document_type = st.selectbox(
+    "Select the type of document",
+    [
+        "Rental Agreement",
+        "Affidavit",
+        "Declaration",
+        "Leave and License Agreement",
+        "Legal Notice",
+        "General Legal Letter"
+    ]
+)
+
+# User information
+st.subheader("Enter Document Details")
+
+user_details = st.text_area(
+    "Enter the required information",
+    height=250,
+    placeholder=(
+        "Example:\n"
+        "Name of person: John\n"
+        "Address: Chennai\n"
+        "Date: 05 October 2026\n"
+        "Purpose: Rental agreement\n"
+        "Other important details..."
+    )
+)
+
+# Generate button
+if st.button("Generate Legal Document", type="primary"):
+
+    if not user_details.strip():
+        st.warning("Please enter the required document details.")
+
+    else:
+        with st.spinner("Generating your document..."):
+
+            try:
+                generated_document = generate_legal_document(
+                    document_type,
+                    user_details
+                )
+
+                st.success("Document generated successfully!")
+
+                st.subheader("Generated Document")
+
+                st.text_area(
+                    "Document Preview",
+                    generated_document,
+                    height=500
+                )
+
+                # Create Word document
+                word_file = create_docx(
+                    generated_document,
+                    document_type
+                )
+
+                # Download button
+                st.download_button(
+                    label="📥 Download Word Document",
+                    data=word_file,
+                    file_name="LegalEase_Document.docx",
+                    mime=(
+                        "application/vnd.openxmlformats-officedocument."
+                        "wordprocessingml.document"
+                    )
+                )
+
+            except Exception as error:
+                st.error(
+                    "Unable to generate the document. "
+                    "Please check your API key and try again."
+                )
+
+                st.caption(f"Error details: {error}")
+
+### gemini_service.py
+
+import streamlit as st
+from gemini_service import generate_legal_document
+from document_generator import create_docx
+
+
+# Page configuration
+st.set_page_config(
+    page_title="LegalEase",
+    page_icon="⚖️",
+    layout="centered"
+)
+
+# Title
+st.title("⚖️ LegalEase")
+st.subheader("AI-Powered Legal Document Generator")
+
+st.write(
+    "LegalEase helps users create structured legal document drafts "
+    "using Artificial Intelligence."
+)
+
+st.info(
+    "Disclaimer: LegalEase provides AI-assisted document drafts. "
+    "It is not a substitute for professional legal advice."
+)
+
+# Document type selection
+document_type = st.selectbox(
+    "Select the type of document",
+    [
+        "Rental Agreement",
+        "Affidavit",
+        "Declaration",
+        "Leave and License Agreement",
+        "Legal Notice",
+        "General Legal Letter"
+    ]
+)
+
+# User information
+st.subheader("Enter Document Details")
+
+user_details = st.text_area(
+    "Enter the required information",
+    height=250,
+    placeholder=(
+        "Example:\n"
+        "Name of person: John\n"
+        "Address: Chennai\n"
+        "Date: 05 October 2026\n"
+        "Purpose: Rental agreement\n"
+        "Other important details..."
+    )
+)
+
+# Generate button
+if st.button("Generate Legal Document", type="primary"):
+
+    if not user_details.strip():
+        st.warning("Please enter the required document details.")
+
+    else:
+        with st.spinner("Generating your document..."):
+
+            try:
+                generated_document = generate_legal_document(
+                    document_type,
+                    user_details
+                )
+
+                st.success("Document generated successfully!")
+
+                st.subheader("Generated Document")
+
+                st.text_area(
+                    "Document Preview",
+                    generated_document,
+                    height=500
+                )
+
+                # Create Word document
+                word_file = create_docx(
+                    generated_document,
+                    document_type
+                )
+
+                # Download button
+                st.download_button(
+                    label="📥 Download Word Document",
+                    data=word_file,
+                    file_name="LegalEase_Document.docx",
+                    mime=(
+                        "application/vnd.openxmlformats-officedocument."
+                        "wordprocessingml.document"
+                    )
+                )
+
+            except Exception as error:
+                st.error(
+                    "Unable to generate the document. "
+                    "Please check your API key and try again."
+                )
+
+                st.caption(f"Error details: {error}")
+
+### document_generator.py
+
+from io import BytesIO
+from docx import Document
+from docx.shared import Pt
+
+
+def create_docx(document_text, document_type):
+
+    # Create a new Word document
+    document = Document()
+
+    # Title
+    title = document.add_heading(
+        "LegalEase",
+        level=0
+    )
+
+    # Document type
+    document.add_heading(
+        document_type,
+        level=1
+    )
+
+    # Add generated content
+    paragraphs = document_text.split("\n")
+
+    for paragraph in paragraphs:
+
+        paragraph = paragraph.strip()
+
+        if paragraph:
+            p = document.add_paragraph(paragraph)
+
+            for run in p.runs:
+                run.font.size = Pt(11)
+
+    # Disclaimer
+    document.add_heading(
+        "Disclaimer",
+        level=2
+    )
+
+    document.add_paragraph(
+        "This document was generated with the assistance of Artificial "
+        "Intelligence. It is only a draft and does not constitute "
+        "professional legal advice. Please consult a qualified legal "
+        "professional before using this document for an actual legal purpose."
+    )
+
+    # Store document in memory
+    file = BytesIO()
+
+    document.save(file)
+
+    file.seek(0)
+
+    return file
+
+###  requirements.txt
+
+streamlit
+google-genai
+python-dotenv
+python-docx
+
+### .env.example
+
+GEMINI_API_KEY=your_gemini_api_key_here
+
+
+
+
+
+
